@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: big-data-lab-9
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 180
+    envVars:
+      - key: SAMPLE_LIMIT
+        value: "10000"
+      - key: MODEL_ESTIMATORS
+        value: "25"
+      - key: MODEL_MAX_DEPTH
+        value: "10"
+      - key: MAX_UPLOAD_MB
+        value: "128"

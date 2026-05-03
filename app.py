@@ -29,13 +29,17 @@ from werkzeug.utils import secure_filename
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 ALLOWED_EXTENSIONS = {".csv"}
-CHUNK_SIZE = 50_000
-SAMPLE_LIMIT = 50_000
+CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "20_000"))
+SAMPLE_LIMIT = int(os.environ.get("SAMPLE_LIMIT", "10_000"))
+MODEL_ESTIMATORS = int(os.environ.get("MODEL_ESTIMATORS", "25"))
+MODEL_MAX_DEPTH = int(os.environ.get("MODEL_MAX_DEPTH", "10"))
+ONE_HOT_MAX_CATEGORIES = int(os.environ.get("ONE_HOT_MAX_CATEGORIES", "12"))
+MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "128"))
 RANDOM_STATE = 42
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "big-csv-analyzer-dev-key"
-app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
 
 
 def allowed_file(filename: str) -> bool:
@@ -179,7 +183,7 @@ def build_pipeline(X: pd.DataFrame, task_type: str) -> Pipeline:
                             "onehot",
                             OneHotEncoder(
                                 handle_unknown="ignore",
-                                max_categories=25,
+                                max_categories=ONE_HOT_MAX_CATEGORIES,
                                 sparse_output=True,
                             ),
                         ),
@@ -190,9 +194,22 @@ def build_pipeline(X: pd.DataFrame, task_type: str) -> Pipeline:
         )
 
     model = (
-        RandomForestRegressor(n_estimators=80, random_state=RANDOM_STATE, n_jobs=-1)
+        RandomForestRegressor(
+            n_estimators=MODEL_ESTIMATORS,
+            max_depth=MODEL_MAX_DEPTH,
+            min_samples_leaf=3,
+            random_state=RANDOM_STATE,
+            n_jobs=1,
+        )
         if task_type == "regression"
-        else RandomForestClassifier(n_estimators=80, random_state=RANDOM_STATE, n_jobs=-1, class_weight="balanced")
+        else RandomForestClassifier(
+            n_estimators=MODEL_ESTIMATORS,
+            max_depth=MODEL_MAX_DEPTH,
+            min_samples_leaf=3,
+            random_state=RANDOM_STATE,
+            n_jobs=1,
+            class_weight="balanced",
+        )
     )
     return Pipeline(
         [
@@ -283,7 +300,7 @@ def train_model(sample: pd.DataFrame, target_column: str) -> dict[str, Any]:
 def fig_to_base64() -> str:
     buffer = io.BytesIO()
     plt.tight_layout()
-    plt.savefig(buffer, format="png", dpi=140, bbox_inches="tight")
+    plt.savefig(buffer, format="png", dpi=110, bbox_inches="tight")
     plt.close()
     buffer.seek(0)
     return base64.b64encode(buffer.read()).decode("ascii")
@@ -387,6 +404,7 @@ def analyze():
         report, sample = analyze_csv(path)
         model_report = train_model(sample, target_column)
     except Exception as exc:
+        app.logger.exception("Analysis failed")
         flash(f"Ошибка анализа: {exc}", "error")
         return redirect(url_for("index"))
 
