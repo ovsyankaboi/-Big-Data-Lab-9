@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Результаты · Big CSV Analyzer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero compact">
+      <div>
+        <p class="eyebrow">Результаты анализа</p>
+        <h1>{{ model.target }}</h1>
+      </div>
+      <a class="secondary-link" href="{{ url_for('index') }}">Новый файл</a>
+    </section>
+
+    <section class="summary-grid">
+      <article class="stat">
+        <span>Строк</span>
+        <strong>{{ "{:,}".format(report.total_rows).replace(",", " ") }}</strong>
+      </article>
+      <article class="stat">
+        <span>Колонок</span>
+        <strong>{{ report.total_columns }}</strong>
+      </article>
+      <article class="stat">
+        <span>Выборка ML</span>
+        <strong>{{ "{:,}".format(report.sample_rows).replace(",", " ") }}</strong>
+      </article>
+      <article class="stat">
+        <span>Тип задачи</span>
+        <strong>{{ model.task_type }}</strong>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Метрики модели</h2>
+      </div>
+      <div class="metric-grid">
+        {% for name, value in model.metrics.items() %}
+          <article class="metric">
+            <span>{{ name }}</span>
+            <strong>{{ value }}</strong>
+          </article>
+        {% endfor %}
+        <article class="metric">
+          <span>Train</span>
+          <strong>{{ model.train_rows }}</strong>
+        </article>
+        <article class="metric">
+          <span>Test</span>
+          <strong>{{ model.test_rows }}</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="chart-grid">
+      {% if charts.target_distribution %}
+        <article class="chart-panel">
+          <img src="data:image/png;base64,{{ charts.target_distribution }}" alt="Распределение целевой переменной">
+        </article>
+      {% endif %}
+      {% if charts.correlation %}
+        <article class="chart-panel">
+          <img src="data:image/png;base64,{{ charts.correlation }}" alt="Корреляция числовых признаков">
+        </article>
+      {% endif %}
+      {% if charts.feature_importance %}
+        <article class="chart-panel">
+          <img src="data:image/png;base64,{{ charts.feature_importance }}" alt="Важность признаков">
+        </article>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Пропуски</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Колонка</th>
+              <th>Пропусков</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in report.missing %}
+              <tr>
+                <td>{{ item.column }}</td>
+                <td>{{ item.missing }}</td>
+                <td>{{ item.percent }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Числовая статистика</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Колонка</th>
+              <th>Count</th>
+              <th>Mean</th>
+              <th>Std</th>
+              <th>Min</th>
+              <th>Max</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in report.numeric_stats %}
+              <tr>
+                <td>{{ item.column }}</td>
+                <td>{{ item.count }}</td>
+                <td>{{ item.mean }}</td>
+                <td>{{ item.std }}</td>
+                <td>{{ item.min }}</td>
+                <td>{{ item.max }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

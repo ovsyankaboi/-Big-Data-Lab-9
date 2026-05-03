@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Big CSV Analyzer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Big Data · ML · Visualization</p>
+        <h1>Big CSV Analyzer</h1>
+      </div>
+      <div class="metric-strip">
+        <span>CSV</span>
+        <span>Chunks</span>
+        <span>Random Forest</span>
+      </div>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="messages">
+          {% for category, message in messages %}
+            <div class="message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Загрузка данных</h2>
+      </div>
+      <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="upload-form">
+        <label class="file-drop">
+          <input type="file" name="dataset" accept=".csv" required>
+          <span>Выберите CSV-файл</span>
+        </label>
+        <button type="submit">Продолжить</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

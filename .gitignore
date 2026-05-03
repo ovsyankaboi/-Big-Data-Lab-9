@@ -1,0 +1,9 @@
+__pycache__/
+.DS_Store
+.venv/
+venv/
+uploads/*
+reports/*
+data/*.csv
+*.pyc
+Задание №9 (Big Data).pdf

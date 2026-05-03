@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Выбор цели · Big CSV Analyzer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero compact">
+      <div>
+        <p class="eyebrow">Файл загружен</p>
+        <h1>{{ original_name }}</h1>
+      </div>
+      <a class="secondary-link" href="{{ url_for('index') }}">Загрузить другой CSV</a>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Целевая колонка</h2>
+      </div>
+      <form action="{{ url_for('analyze') }}" method="post" class="target-form">
+        <input type="hidden" name="stored_name" value="{{ stored_name }}">
+        <label>
+          <span>Колонка для обучения</span>
+          <select name="target_column" required>
+            {% for column in columns %}
+              <option value="{{ column }}">{{ column }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="submit">Запустить анализ</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Первые строки</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              {% for column in columns %}
+                <th>{{ column }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in preview %}
+              <tr>
+                {% for column in columns %}
+                  <td>{{ row[column] }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
